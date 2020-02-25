@@ -21,8 +21,8 @@ public class HdfsActiveMaster {
 
     public static ZooKeeper zk = null;
     public static  Stat stat = new Stat();
-    public static String HDFS_HA_ZK_ADDRESS = "10.2.13.22:2181";    //zookeeper集群地址
-    public static String HDFS_HA_ZK_NODE = "/hadoop-ha/nameservice1/ActiveStandbyElectorLock";   //zookeeper 中查找的节点的位置
+    public static String HDFS_HA_ZK_ADDRESS = "xxx.xxx.xxx.xxx:2181";    //zookeeper集群地址
+    public static String HDFS_HA_ZK_NODE = "/hadoop-ha/nameservice/ActiveStandbyElectorLock";   //zookeeper 中查找的节点的位置
     public static String activeMater = "";
 
     public static String getActiveMaster() {
