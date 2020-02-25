@@ -1,0 +1,67 @@
+package dao;
+/*
+ *@description
+ *@author:yanlinshan
+ *@date: -
+ */
+
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.apache.hadoop.hdfs.server.namenode.ha.proto.HAZKInfoProtos;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
+
+import java.io.IOException;
+
+import static org.apache.zookeeper.Watcher.Event.EventType.NodeDataChanged;
+
+public class HdfsActiveMaster {
+
+    public static ZooKeeper zk = null;
+    public static  Stat stat = new Stat();
+    public static String HDFS_HA_ZK_ADDRESS = "10.2.13.22:2181";    //zookeeper集群地址
+    public static String HDFS_HA_ZK_NODE = "/hadoop-ha/nameservice1/ActiveStandbyElectorLock";   //zookeeper 中查找的节点的位置
+    public static String activeMater = "";
+
+    public static String getActiveMaster() {
+
+        //zookeeper 建立连接
+        try {
+            zk = new ZooKeeper(HDFS_HA_ZK_ADDRESS, 50000, new Watcher() {
+                @Override
+                public void process(WatchedEvent event) {
+                    if (event.getType() == NodeDataChanged) {
+//                        update();
+//                        System.out.println("HA Address changed......");
+                    }
+                }
+            });
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        update();
+        return activeMater;
+    }
+
+
+    private static void update() {
+        try {
+            if (zk != null ) {
+                byte[] bytes = zk.getData(HDFS_HA_ZK_NODE, true, stat);
+                HAZKInfoProtos.ActiveNodeInfo nodeInfo = HAZKInfoProtos.ActiveNodeInfo.parseFrom(bytes);
+                activeMater = nodeInfo.getHostname();
+                activeMater = "hdfs://" + activeMater + ":" + nodeInfo.getPort();
+            }
+        } catch (KeeperException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (InvalidProtocolBufferException e) {
+            e.printStackTrace();
+        }
+    }
+
+}
